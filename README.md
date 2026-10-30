@@ -24,3 +24,9 @@ With `DJANGO_DEBUG=False`, secure cookies, HTTPS redirect and HSTS are enabled.
 
 ## Branching
 `main` ← `develop` ← `rehaan-dev` / `meghana-dev`. Feature PRs target `develop`.
+
+## Sample data
+```
+python manage.py loaddata sample_departments
+```
+Illustrative only. The official category-to-department mapping is still to be agreed by the team.
