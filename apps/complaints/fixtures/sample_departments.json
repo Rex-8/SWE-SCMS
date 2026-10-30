@@ -1,0 +1,10 @@
+[
+  {"model": "complaints.department", "pk": 1, "fields": {"name": "Electricity", "description": "", "is_active": true, "staff": []}},
+  {"model": "complaints.department", "pk": 2, "fields": {"name": "Sanitation", "description": "", "is_active": true, "staff": []}},
+  {"model": "complaints.department", "pk": 3, "fields": {"name": "Water Supply", "description": "", "is_active": true, "staff": []}},
+  {"model": "complaints.department", "pk": 4, "fields": {"name": "Roads", "description": "", "is_active": true, "staff": []}},
+  {"model": "complaints.category", "pk": 1, "fields": {"name": "Streetlight not working", "description": "", "department": 1, "is_active": true}},
+  {"model": "complaints.category", "pk": 2, "fields": {"name": "Garbage collection", "description": "", "department": 2, "is_active": true}},
+  {"model": "complaints.category", "pk": 3, "fields": {"name": "Water supply issue", "description": "", "department": 3, "is_active": true}},
+  {"model": "complaints.category", "pk": 4, "fields": {"name": "Road damage", "description": "", "department": 4, "is_active": true}}
+]
