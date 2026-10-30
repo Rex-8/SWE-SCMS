@@ -49,3 +49,16 @@ class IsAdminRole(HasRole):
 
 class IsStaffOrAdmin(HasRole):
     allowed_roles = (Role.STAFF, Role.ADMIN)
+
+def is_owner(user, obj, field="citizen"):
+    """True if `obj.<field>` is the authenticated user. Works with any model."""
+    return bool(user and user.is_authenticated and getattr(obj, f"{field}_id", None) == user.pk)
+
+
+class IsObjectOwner(BasePermission):
+    """Object-level check. Subclass and set `owner_field` (default: `citizen`)."""
+
+    owner_field = "citizen"
+
+    def has_object_permission(self, request, view, obj):
+        return is_owner(request.user, obj, self.owner_field)

@@ -30,3 +30,17 @@ With `DJANGO_DEBUG=False`, secure cookies, HTTPS redirect and HSTS are enabled.
 python manage.py loaddata sample_departments
 ```
 Illustrative only. The official category-to-department mapping is still to be agreed by the team.
+
+## Auth API (`/api/v1/auth/`)
+Session cookies + CSRF. Call `GET csrf` first and send the `csrftoken` cookie value as the `X-CSRFToken` header on every POST.
+
+| Method | Path | Body |
+|---|---|---|
+| GET | `csrf` | |
+| POST | `register` | `name`, one of `email`/`mobile`, `password` |
+| POST | `verify-otp` | `identifier`, `otp` |
+| POST | `login` | `identifier`, `password` |
+| POST | `logout` | (authenticated) |
+| GET | `me` | (authenticated) |
+
+In development the OTP is printed to the `runserver` console (mock gateway).

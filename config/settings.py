@@ -92,6 +92,14 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+    "DEFAULT_THROTTLE_RATES": {
+        "register": "10/hour",
+        "register_identifier": "3/hour",
+        "login": "20/min",
+        "login_identifier": "5/min",
+        "otp": "30/hour",
+        "otp_identifier": "10/hour",
+    },
 }
 
 LANGUAGE_CODE = "en-us"
@@ -103,3 +111,12 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTHENTICATION_BACKENDS = ["apps.accounts.backends.ContactBackend"]
+
+OTP_LENGTH = 6
+OTP_TTL_SECONDS = 10 * 60
+OTP_MAX_ATTEMPTS = 5
+# Dev-only mock gateway (prints to stdout, refuses to run when DEBUG=False).
+# A real provider adapter comes with the notifications PR.
+OTP_GATEWAY = env("OTP_GATEWAY", default="apps.accounts.gateways.ConsoleOTPGateway")

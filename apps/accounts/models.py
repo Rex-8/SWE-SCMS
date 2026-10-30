@@ -3,7 +3,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
-
+from django.conf import settings
 
 class Role(models.TextChoices):
     CITIZEN = "CITIZEN", "Citizen"
@@ -102,3 +102,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_admin_role(self):
         return self.role == Role.ADMIN
+
+class VerificationOTP(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="otps")
+    otp_hash = models.CharField(max_length=64)
+    expires_at = models.DateTimeField()
+    attempt_count = models.PositiveSmallIntegerField(default=0)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["user", "-created_at"], name="otp_user_created_idx")]
