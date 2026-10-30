@@ -21,6 +21,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "apps.accounts",
     "apps.complaints",
+    "apps.tracking",
+    "apps.routing"
 ]
 
 MIDDLEWARE = [
@@ -99,6 +101,8 @@ REST_FRAMEWORK = {
         "login_identifier": "5/min",
         "otp": "30/hour",
         "otp_identifier": "10/hour",
+        "complaint_submit": "20/hour",
+        "track": "60/min",
     },
 }
 

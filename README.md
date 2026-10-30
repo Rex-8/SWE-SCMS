@@ -44,3 +44,10 @@ Session cookies + CSRF. Call `GET csrf` first and send the `csrftoken` cookie va
 | GET | `me` | (authenticated) |
 
 In development the OTP is printed to the `runserver` console (mock gateway).
+
+## Complaints API (`/api/v1/`)
+| Method | Path | Access | Body |
+|---|---|---|---|
+| GET | `complaints/categories` | authenticated | |
+| POST | `complaints` | citizen | `categoryId`, `description`, `location` |
+| GET | `complaints/track/{trackingId}` | owner / department staff / admin | |
