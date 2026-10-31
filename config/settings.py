@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "apps.tracking",
     "apps.routing",
     "apps.audit",
+    "apps.notifications",
 ]
 
 MIDDLEWARE = [
@@ -125,3 +126,7 @@ OTP_MAX_ATTEMPTS = 5
 # Dev-only mock gateway (prints to stdout, refuses to run when DEBUG=False).
 # A real provider adapter comes with the notifications PR.
 OTP_GATEWAY = env("OTP_GATEWAY", default="apps.accounts.gateways.ConsoleOTPGateway")
+NOTIFICATION_ADAPTER = env(
+    "NOTIFICATION_ADAPTER", default="apps.notifications.adapters.ConsoleNotificationAdapter"
+)
+NOTIFICATION_MAX_ATTEMPTS = 3

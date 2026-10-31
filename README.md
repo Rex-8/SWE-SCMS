@@ -60,3 +60,9 @@ In development the OTP is printed to the `runserver` console (mock gateway).
 | POST | `{id}/close` | staff (own department) / admin | `resolutionDetails` |
 
 `{id}` is the numeric primary key. Status flow: Assigned → In Progress → Resolved → Closed (Resolved may return to In Progress). Closing is only via `close`.
+
+## Notifications
+A notification row is written in the same transaction as every status change, and delivered after commit through the adapter in `NOTIFICATION_ADAPTER` (default: console, DEBUG only). Failed deliveries are retried up to `NOTIFICATION_MAX_ATTEMPTS`; run this periodically (cron / loop):
+```
+python manage.py send_pending_notifications
+```
