@@ -1,7 +1,7 @@
 import secrets
 import string
 from apps.audit.services import record as record_audit
-
+from apps.notifications.services import notify_status_change
 from . import workflow
 from .permissions import can_modify_complaint
 from django.db import IntegrityError, transaction
@@ -111,6 +111,7 @@ def change_status(*, complaint_id, actor, new_status, remark=""):
             obj=complaint,
             details={"from": old, "to": new_status, "remark": remark},
         )
+        notify_status_change(complaint=complaint, old_status=old, new_status=new_status)
     return complaint
 
 
@@ -134,5 +135,8 @@ def close_complaint(*, complaint_id, actor, resolution_details):
             action="complaint.closed",
             obj=complaint,
             details={"from": old, "to": ComplaintStatus.CLOSED.value, "resolution_details": details},
+        )
+        notify_status_change(
+            complaint=complaint, old_status=old, new_status=ComplaintStatus.CLOSED.value
         )
     return complaint
