@@ -22,7 +22,8 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.complaints",
     "apps.tracking",
-    "apps.routing"
+    "apps.routing",
+    "apps.audit",
 ]
 
 MIDDLEWARE = [
