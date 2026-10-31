@@ -51,3 +51,12 @@ In development the OTP is printed to the `runserver` console (mock gateway).
 | GET | `complaints/categories` | authenticated | |
 | POST | `complaints` | citizen | `categoryId`, `description`, `location` |
 | GET | `complaints/track/{trackingId}` | owner / department staff / admin | |
+
+## Staff/admin API (`/api/v1/complaints/`)
+| Method | Path | Access | Body |
+|---|---|---|---|
+| GET | `assigned` | staff (own department) / admin | `?page=`, `?pageSize=` |
+| PATCH | `{id}/status` | staff (own department) / admin | `status` (e.g. `"In Progress"`), `remark` |
+| POST | `{id}/close` | staff (own department) / admin | `resolutionDetails` |
+
+`{id}` is the numeric primary key. Status flow: Assigned → In Progress → Resolved → Closed (Resolved may return to In Progress). Closing is only via `close`.
