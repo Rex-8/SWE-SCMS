@@ -4,7 +4,7 @@ import io
 from django.db import IntegrityError, transaction
 from django.test import override_settings
 
-from apps.accounts.models import Role, User
+from apps.accounts.models import User
 from apps.complaints.models import ComplaintStatus as S
 from apps.notifications.adapters import LocMemNotificationAdapter
 from apps.notifications.models import DeliveryStatus, EventType, Notification

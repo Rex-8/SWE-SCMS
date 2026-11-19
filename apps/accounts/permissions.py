@@ -50,6 +50,7 @@ class IsAdminRole(HasRole):
 class IsStaffOrAdmin(HasRole):
     allowed_roles = (Role.STAFF, Role.ADMIN)
 
+
 def is_owner(user, obj, field="citizen"):
     """True if `obj.<field>` is the authenticated user. Works with any model."""
     return bool(user and user.is_authenticated and getattr(obj, f"{field}_id", None) == user.pk)

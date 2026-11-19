@@ -19,8 +19,9 @@ KEYS = [
     "SECURE_CONTENT_TYPE_NOSNIFF",
     "SECURE_PROXY_SSL_HEADER",
 ]
-DUMP = "import json; from django.conf import settings as s; print(json.dumps({k: getattr(s, k) for k in %r}))" % (
-    KEYS,
+DUMP = (
+    "import json; from django.conf import settings as s; print(json.dumps({k: getattr(s, k) for k in %r}))"
+    % (KEYS,)
 )
 DEPLOY_WARNINGS_THAT_MUST_BE_ABSENT = [
     "security.W004",  # HSTS seconds

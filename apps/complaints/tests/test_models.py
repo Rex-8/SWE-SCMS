@@ -112,9 +112,7 @@ class ComplaintTests(ComplaintModelTestBase):
             self.build(closed_at=timezone.now()).save()
 
     def test_valid_closed_complaint_saves(self):
-        c = self.build(
-            status=ComplaintStatus.CLOSED, resolution_details="Fixed", closed_at=timezone.now()
-        )
+        c = self.build(status=ComplaintStatus.CLOSED, resolution_details="Fixed", closed_at=timezone.now())
         c.full_clean()
         c.save()
 

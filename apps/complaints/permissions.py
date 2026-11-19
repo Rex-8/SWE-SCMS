@@ -14,6 +14,7 @@ def can_view_complaint(user, complaint):
         return complaint.department.staff.filter(pk=user.pk).exists()
     return False
 
+
 def can_modify_complaint(user, complaint):
     """Admin, or staff belonging to the complaint's department. Citizens never."""
     if not (user and user.is_authenticated):

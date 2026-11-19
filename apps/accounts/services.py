@@ -45,9 +45,7 @@ def _hash_otp(user_id, code):
 
 def _has_pending_otp(user):
     otp = user.otps.filter(verified_at__isnull=True).order_by("-created_at").first()
-    return bool(
-        otp and otp.expires_at > timezone.now() and otp.attempt_count < settings.OTP_MAX_ATTEMPTS
-    )
+    return bool(otp and otp.expires_at > timezone.now() and otp.attempt_count < settings.OTP_MAX_ATTEMPTS)
 
 
 def issue_otp(user):

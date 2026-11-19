@@ -26,7 +26,12 @@ class StaffActionAuditTests(ComplaintAPITestCase):
         client = client_for(self.staff)
         started = timezone.now()
         steps = [
-            ("patch", self.status_url, {"status": "In Progress", "remark": "Dispatched"}, "complaint.status_changed"),
+            (
+                "patch",
+                self.status_url,
+                {"status": "In Progress", "remark": "Dispatched"},
+                "complaint.status_changed",
+            ),
             ("patch", self.status_url, {"status": "Resolved"}, "complaint.status_changed"),
             ("post", self.close_url, {"resolutionDetails": "Fixed."}, "complaint.closed"),
         ]
@@ -56,7 +61,12 @@ class StaffActionAuditTests(ComplaintAPITestCase):
             (APIClient(), self.status_url, {"status": "In Progress"}, 403),
             (client_for(roads_staff), self.status_url, {"status": "In Progress"}, 404),
             (client_for(self.staff), "/api/v1/complaints/999999/status", {"status": "In Progress"}, 404),
-            (client_for(self.staff, enforce_csrf_checks=True), self.status_url, {"status": "In Progress"}, 403),
+            (
+                client_for(self.staff, enforce_csrf_checks=True),
+                self.status_url,
+                {"status": "In Progress"},
+                403,
+            ),
         ]
         for client, url, payload, expected in attempts:
             with self.subTest(url=url, expected=expected):
@@ -104,7 +114,10 @@ class AdminSiteAuditTests(TestCase):
         return response
 
     def test_department_add_change_delete_are_audited(self):
-        self.post(reverse("admin:complaints_department_add"), {"name": "Parks", "description": "", "is_active": "on"})
+        self.post(
+            reverse("admin:complaints_department_add"),
+            {"name": "Parks", "description": "", "is_active": "on"},
+        )
         department = Department.objects.get(name="Parks")
         created = AuditLog.objects.get()
         self.assertEqual(created.actor, self.root)
@@ -153,6 +166,8 @@ class AdminSiteAuditTests(TestCase):
         self.assertNotIn(PASSWORD, json.dumps(entry.details))
 
     def test_a_rejected_admin_form_leaves_no_entry(self):
-        response = self.client.post(reverse("admin:complaints_department_add"), {"name": "", "description": ""})
+        response = self.client.post(
+            reverse("admin:complaints_department_add"), {"name": "", "description": ""}
+        )
         self.assertEqual(response.status_code, 200)  # form re-rendered with errors
         self.assertEqual(AuditLog.objects.count(), 0)

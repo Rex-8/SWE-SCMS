@@ -98,7 +98,12 @@ class StatusUpdateTests(ComplaintAPITestCase):
         self.assertIn("close", r.json()["detail"].lower())
 
     def test_bad_input(self):
-        for payload in ({}, {"status": ""}, {"status": "Bogus"}, {"status": "In Progress", "remark": "x" * 1001}):
+        for payload in (
+            {},
+            {"status": ""},
+            {"status": "Bogus"},
+            {"status": "In Progress", "remark": "x" * 1001},
+        ):
             with self.subTest(payload=payload):
                 r = self.client.patch(self.url, payload, format="json")
                 self.assertEqual(r.status_code, 400)

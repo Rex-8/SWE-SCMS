@@ -13,7 +13,9 @@ class AutomaticAssignmentTests(ComplaintAPITestCase):
             with self.subTest(category=category.name):
                 r = self.submit(categoryId=category.pk)
                 self.assertEqual(r.json()["department"], department.name)
-                self.assertEqual(Complaint.objects.get(tracking_id=r.json()["trackingId"]).department, department)
+                self.assertEqual(
+                    Complaint.objects.get(tracking_id=r.json()["trackingId"]).department, department
+                )
 
     def test_remapping_a_category_affects_only_new_complaints(self):
         first = self.submit().json()["trackingId"]

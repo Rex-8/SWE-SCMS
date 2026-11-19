@@ -88,8 +88,12 @@ class EndpointRoleMatrixTests(ComplaintAPITestCase):
             client = client_for(user)
             responses = {
                 "track": client.get(f"{TRACK_URL}/{complaint.tracking_id}"),
-                "status": client.patch(f"{BASE}/{complaint.pk}/status", {"status": "In Progress"}, format="json"),
-                "close": client.post(f"{BASE}/{complaint.pk}/close", {"resolutionDetails": "Fixed."}, format="json"),
+                "status": client.patch(
+                    f"{BASE}/{complaint.pk}/status", {"status": "In Progress"}, format="json"
+                ),
+                "close": client.post(
+                    f"{BASE}/{complaint.pk}/close", {"resolutionDetails": "Fixed."}, format="json"
+                ),
             }
             for action, response in responses.items():
                 with self.subTest(case=label, action=action):

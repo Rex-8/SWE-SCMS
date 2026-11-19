@@ -79,7 +79,9 @@ class ConsistencyTests(IntegrationTestCase):
         self.complaint.refresh_from_db()
         self.assertEqual(self.complaint.status, S.IN_PROGRESS)
         notification = Notification.objects.get()
-        self.assertEqual((notification.delivery_status, notification.attempt_count), (DeliveryStatus.PENDING, 1))
+        self.assertEqual(
+            (notification.delivery_status, notification.attempt_count), (DeliveryStatus.PENDING, 1)
+        )
         self.assertEqual(LocMemNotificationAdapter.outbox, [])
 
         out = StringIO()
@@ -92,9 +94,7 @@ class ConsistencyTests(IntegrationTestCase):
     # -- tracking IDs ---------------------------------------------------------------------
 
     def test_tracking_id_collision_is_recovered_end_to_end(self):
-        with mock.patch(
-            "apps.complaints.services.generate_tracking_id", side_effect=[EXISTING_ID, FRESH_ID]
-        ):
+        with mock.patch("apps.complaints.services.generate_tracking_id", side_effect=[EXISTING_ID, FRESH_ID]):
             response = self.citizen.post(
                 "/complaints",
                 {"categoryId": self.lights.pk, "description": "Another light", "location": "Sector 9"},

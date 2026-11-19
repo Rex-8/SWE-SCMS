@@ -1,3 +1,5 @@
+from django.test import override_settings
+
 from apps.accounts.models import Role
 from apps.accounts.tests.helpers import make_verified_user
 from apps.audit.models import AuditLog
@@ -6,8 +8,6 @@ from apps.complaints.tests.state import force_state
 from apps.complaints.tests.test_status_workflow import client_for
 from apps.notifications.adapters import LocMemNotificationAdapter
 from apps.notifications.models import DeliveryStatus, EventType, Notification
-
-from django.test import override_settings
 
 from .helpers import NotificationTestCase
 

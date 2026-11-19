@@ -1,15 +1,16 @@
 import secrets
 import string
-from apps.audit.services import record as record_audit
-from apps.notifications.services import notify_status_change
-from . import workflow
-from .permissions import can_modify_complaint
+
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
+from apps.audit.services import record as record_audit
+from apps.notifications.services import notify_status_change
 from apps.routing.services import RoutingError, resolve_department
 
+from . import workflow
 from .models import Category, Complaint, ComplaintStatus
+from .permissions import can_modify_complaint
 
 TRACKING_ALPHABET = string.ascii_uppercase + string.digits
 TRACKING_SUFFIX_LENGTH = 6
@@ -66,6 +67,7 @@ def submit_complaint(*, citizen, category_id, description, location):
             raise
         return complaint
     raise TrackingIDGenerationError
+
 
 class ComplaintNotFound(Exception):
     """Unknown complaint OR the actor may not modify it (deliberately not distinguished)."""
@@ -136,7 +138,5 @@ def close_complaint(*, complaint_id, actor, resolution_details):
             obj=complaint,
             details={"from": old, "to": ComplaintStatus.CLOSED.value, "resolution_details": details},
         )
-        notify_status_change(
-            complaint=complaint, old_status=old, new_status=ComplaintStatus.CLOSED.value
-        )
+        notify_status_change(complaint=complaint, old_status=old, new_status=ComplaintStatus.CLOSED.value)
     return complaint
