@@ -10,10 +10,17 @@ from apps.complaints.models import ComplaintStatus
 from apps.complaints.tests.helpers import TRACK_URL, ComplaintAPITestCase
 
 FIELDS = {
-    "trackingId", "category", "description", "location", "status",
-    "department", "createdAt", "updatedAt", "closedAt"
-}  # fmt: skip
-
+    "trackingId",
+    "category",
+    "description",
+    "evidence",
+    "location",
+    "status",
+    "department",
+    "createdAt",
+    "updatedAt",
+    "closedAt",
+}
 
 class TrackingTests(ComplaintAPITestCase):
     def setUp(self):
@@ -36,6 +43,7 @@ class TrackingTests(ComplaintAPITestCase):
         self.assertIsNotNone(body["createdAt"])
         self.assertIsNotNone(body["updatedAt"])
         self.assertIsNone(body["closedAt"])
+        self.assertEqual(body["evidence"], [])
 
     def test_closed_complaint_shows_closed_timestamp(self):
         closed = self.make_complaint(

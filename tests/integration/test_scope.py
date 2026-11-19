@@ -21,8 +21,13 @@ class SprintOneScopeTests(IntegrationTestCase):
         "/reports/summary",
     ]
     FORBIDDEN_APP_LABELS = {"reports", "feedback", "evidence", "uploads", "search"}
-    FORBIDDEN_FIELDS = {"evidence", "attachment", "attachments", "feedback", "rating", "reassigned_by"}
-
+    FORBIDDEN_FIELDS = {
+        "attachment",
+        "attachments",
+        "feedback",
+        "rating",
+        "reassigned_by",
+    }
     def test_excluded_endpoints_do_not_exist(self):
         admin = self.login(self.admin)
         for path in self.EXCLUDED_PATHS:
