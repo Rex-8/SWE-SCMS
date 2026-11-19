@@ -13,7 +13,7 @@ def get_trackable_complaint(*, user, tracking_id):
         return None
     complaint = (
         Complaint.objects.select_related("category", "department")
-        .prefetch_related("evidence")
+        .prefetch_related("evidence", "status_history__actor")
         .filter(tracking_id=tracking_id)
         .first()
     )

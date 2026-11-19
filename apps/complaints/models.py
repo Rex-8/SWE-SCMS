@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 
 from apps.accounts.models import Role
 
@@ -151,3 +152,35 @@ class ComplaintEvidence(models.Model):
 
     def __str__(self):
         return self.original_name
+
+
+
+class ComplaintStatusHistory(models.Model):
+    complaint = models.ForeignKey(
+        Complaint,
+        on_delete=models.CASCADE,
+        related_name="status_history",
+    )
+    from_status = models.CharField(
+        max_length=12,
+        choices=ComplaintStatus.choices,
+        null=True,
+        blank=True,
+    )
+    to_status = models.CharField(max_length=12, choices=ComplaintStatus.choices)
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="complaint_status_changes",
+    )
+    remark = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        indexes = [
+            models.Index(fields=["complaint", "created_at"], name="complaint_history_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.complaint.tracking_id}: {self.from_status or 'NEW'} -> {self.to_status}"
