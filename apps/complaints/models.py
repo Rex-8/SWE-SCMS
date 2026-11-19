@@ -1,3 +1,6 @@
+from pathlib import Path
+from uuid import uuid4
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
@@ -123,3 +126,28 @@ class Complaint(models.Model):
             errors["resolution_details"] = "Resolution details are required to close a complaint."
         if errors:
             raise ValidationError(errors)
+
+
+def evidence_upload_path(instance, filename):
+    extension = Path(filename).suffix.lower()
+    return f"evidence/{instance.complaint_id}/{uuid4().hex}{extension}"
+
+
+class ComplaintEvidence(models.Model):
+    complaint = models.ForeignKey(
+        Complaint,
+        on_delete=models.CASCADE,
+        related_name="evidence",
+    )
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+    )
+    file = models.FileField(upload_to=evidence_upload_path)
+    original_name = models.CharField(max_length=255)
+    content_type = models.CharField(max_length=100)
+    size = models.PositiveBigIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.original_name

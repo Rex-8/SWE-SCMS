@@ -11,7 +11,7 @@ from apps.complaints.tests.helpers import TRACK_URL, ComplaintAPITestCase
 
 FIELDS = {
     "trackingId", "category", "description", "location", "status",
-    "department", "createdAt", "updatedAt", "closedAt",
+    "department", "createdAt", "updatedAt", "closedAt","evidence",
 }  # fmt: skip
 
 

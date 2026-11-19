@@ -10,4 +10,9 @@ urlpatterns = [
     path("complaints/assigned", views.AssignedComplaintListView.as_view(), name="assigned"),
     path("complaints/<int:pk>/status", views.ComplaintStatusView.as_view(), name="status"),
     path("complaints/<int:pk>/close", views.ComplaintCloseView.as_view(), name="close"),
+    path(
+        "complaints/evidence/<int:pk>/download",
+        views.EvidenceDownloadView.as_view(),
+        name="evidence-download",
+    ),
 ]
