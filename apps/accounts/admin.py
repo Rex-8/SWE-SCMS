@@ -3,6 +3,8 @@ from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.forms import BaseUserCreationForm
 from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
 
+from apps.audit.admin_mixins import AuditedAdminMixin
+
 from .models import User
 
 
@@ -19,7 +21,7 @@ class UserChangeForm(DjangoUserChangeForm):
 
 
 @admin.register(User)
-class UserAdmin(DjangoUserAdmin):
+class UserAdmin(AuditedAdminMixin, DjangoUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
     ordering = ("-created_at",)

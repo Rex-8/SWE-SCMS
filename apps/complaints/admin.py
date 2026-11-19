@@ -1,17 +1,19 @@
 from django.contrib import admin
 
+from apps.audit.admin_mixins import AuditedAdminMixin
+
 from .models import Category, Complaint, Department
 
 
 @admin.register(Department)
-class DepartmentAdmin(admin.ModelAdmin):
+class DepartmentAdmin(AuditedAdminMixin, admin.ModelAdmin):
     list_display = ("name", "is_active")
     search_fields = ("name",)
     filter_horizontal = ("staff",)
 
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(AuditedAdminMixin, admin.ModelAdmin):
     list_display = ("name", "department", "is_active")
     list_filter = ("department", "is_active")
     search_fields = ("name",)

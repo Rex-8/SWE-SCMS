@@ -23,7 +23,7 @@ class UserModelTests(TestCase):
 
     def test_db_constraint_requires_contact(self):
         with self.assertRaises(IntegrityError), transaction.atomic():
-            User.objects.bulk_create([User(name="X", password="x")])
+            User.objects.bulk_create([User(name="X")])
 
     def test_duplicate_email_rejected_case_insensitive(self):
         User.objects.create_user(email="d@example.com", password=PASSWORD, name="D")
