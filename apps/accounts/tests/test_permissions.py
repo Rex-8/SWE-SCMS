@@ -4,8 +4,9 @@ from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
 
 from apps.accounts.models import Role, User
-from .helpers import PASSWORD
 from apps.accounts.permissions import IsAdminRole, IsCitizen, IsStaffOrAdmin, role_required
+
+from .helpers import PASSWORD
 
 
 def make(role):

@@ -38,9 +38,7 @@ class AuthAPITestCase(TestCase):
         return self.client.post(f"{AUTH}/register", data, format="json")
 
     def verify(self, identifier, code):
-        return self.client.post(
-            f"{AUTH}/verify-otp", {"identifier": identifier, "otp": code}, format="json"
-        )
+        return self.client.post(f"{AUTH}/verify-otp", {"identifier": identifier, "otp": code}, format="json")
 
     def login(self, identifier, password=PASSWORD, client=None, **extra):
         return (client or self.client).post(

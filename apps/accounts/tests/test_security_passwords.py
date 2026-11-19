@@ -1,8 +1,9 @@
 import logging
 from unittest import mock
-from django.core.cache import cache
+
 from django.apps import apps
 from django.conf import settings
+from django.core.cache import cache
 from rest_framework.test import APIClient
 
 from apps.accounts.models import User

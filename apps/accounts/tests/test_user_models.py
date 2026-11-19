@@ -2,6 +2,7 @@ from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from apps.accounts.models import Role, User
+
 from .helpers import PASSWORD
 
 
@@ -56,9 +57,7 @@ class UserModelTests(TestCase):
             self.assertEqual(u.role, role)
 
     def test_staff_role_is_pre_verified(self):
-        s = User.objects.create_user(
-            email="s@example.com", password=PASSWORD, name="S", role=Role.STAFF
-        )
+        s = User.objects.create_user(email="s@example.com", password=PASSWORD, name="S", role=Role.STAFF)
         self.assertTrue(s.is_verified)
 
     def test_create_superuser(self):

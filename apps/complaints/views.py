@@ -25,9 +25,7 @@ class CategoryListView(APIView):
 
     def get(self, request):
         categories = Category.objects.filter(is_active=True, department__is_active=True).order_by("name")
-        return Response(
-            [{"id": c.pk, "name": c.name, "description": c.description} for c in categories]
-        )
+        return Response([{"id": c.pk, "name": c.name, "description": c.description} for c in categories])
 
 
 class ComplaintCreateView(APIView):

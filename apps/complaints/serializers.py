@@ -16,9 +16,7 @@ class ComplaintSubmitSerializer(serializers.Serializer):
 
 class StatusUpdateSerializer(serializers.Serializer):
     status = serializers.CharField(max_length=32)
-    remark = serializers.CharField(
-        required=False, allow_blank=True, max_length=MAX_REMARK_LENGTH, default=""
-    )
+    remark = serializers.CharField(required=False, allow_blank=True, max_length=MAX_REMARK_LENGTH, default="")
 
     def validate_status(self, value):
         parsed = workflow.parse_status(value)

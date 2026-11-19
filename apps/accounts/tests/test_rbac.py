@@ -32,8 +32,7 @@ def make_view(permission):
 class RoleMatrixTests(TestCase):
     def setUp(self):
         self.users = {
-            role: make_verified_user(email=f"{role.lower()}@example.com", role=role)
-            for role in Role.values
+            role: make_verified_user(email=f"{role.lower()}@example.com", role=role) for role in Role.values
         }
         self.rf = APIRequestFactory()
 

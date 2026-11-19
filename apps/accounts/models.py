@@ -1,9 +1,10 @@
+from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
-from django.conf import settings
+
 
 class Role(models.TextChoices):
     CITIZEN = "CITIZEN", "Citizen"
@@ -102,6 +103,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_admin_role(self):
         return self.role == Role.ADMIN
+
 
 class VerificationOTP(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="otps")

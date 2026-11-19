@@ -17,7 +17,11 @@ class CitizenToResolutionTests(IntegrationTestCase):
         self.assertIn("Streetlight not working", [c["name"] for c in categories.json()])
         submitted = citizen.post(
             "/complaints",
-            {"categoryId": self.lights.pk, "description": "Streetlight out near the park", "location": "Sector 12"},
+            {
+                "categoryId": self.lights.pk,
+                "description": "Streetlight out near the park",
+                "location": "Sector 12",
+            },
         )
         self.assertEqual(submitted.status_code, 201)
         body = submitted.json()
@@ -45,7 +49,9 @@ class CitizenToResolutionTests(IntegrationTestCase):
 
         # 9-10. Staff starts work: citizen sees it and is notified.
         url = f"/complaints/{complaint.pk}"
-        response = self.commit(lambda: staff.patch(f"{url}/status", {"status": "In Progress", "remark": "Team dispatched"}))
+        response = self.commit(
+            lambda: staff.patch(f"{url}/status", {"status": "In Progress", "remark": "Team dispatched"})
+        )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(citizen.get(track).json()["status"], "In Progress")
         self.assertEqual(len(LocMemNotificationAdapter.outbox), 1)
@@ -56,7 +62,9 @@ class CitizenToResolutionTests(IntegrationTestCase):
 
         # 12-13. Staff closes it with resolution details: citizen sees Closed and is notified.
         response = self.commit(
-            lambda: staff.post(f"{url}/close", {"resolutionDetails": "Streetlight repaired and functionality verified."})
+            lambda: staff.post(
+                f"{url}/close", {"resolutionDetails": "Streetlight repaired and functionality verified."}
+            )
         )
         self.assertEqual(response.status_code, 200)
         final = citizen.get(track).json()
@@ -113,8 +121,12 @@ class CitizenOwnershipTests(IntegrationTestCase):
         # Citizens cannot act on anyone's complaint, their own included.
         asha_pk = Complaint.objects.get(tracking_id=asha_id).pk
         for session in (asha, ravi):
-            self.assertEqual(session.patch(f"/complaints/{asha_pk}/status", {"status": "In Progress"}).status_code, 403)
-            self.assertEqual(session.post(f"/complaints/{asha_pk}/close", {"resolutionDetails": "x"}).status_code, 403)
+            self.assertEqual(
+                session.patch(f"/complaints/{asha_pk}/status", {"status": "In Progress"}).status_code, 403
+            )
+            self.assertEqual(
+                session.post(f"/complaints/{asha_pk}/close", {"resolutionDetails": "x"}).status_code, 403
+            )
             self.assertEqual(session.get("/complaints/assigned").status_code, 403)
         self.assertEqual(Complaint.objects.get(pk=asha_pk).status, "ASSIGNED")
         self.assertEqual(AuditLog.objects.count(), 0)
@@ -129,14 +141,22 @@ class DepartmentIsolationTests(IntegrationTestCase):
 
         elec = self.login(self.elec_staff)
         roads = self.login(self.roads_staff)
-        self.assertEqual([r["trackingId"] for r in elec.get("/complaints/assigned").json()["results"]], [electricity_id])
-        self.assertEqual([r["trackingId"] for r in roads.get("/complaints/assigned").json()["results"]], [roads_id])
+        self.assertEqual(
+            [r["trackingId"] for r in elec.get("/complaints/assigned").json()["results"]], [electricity_id]
+        )
+        self.assertEqual(
+            [r["trackingId"] for r in roads.get("/complaints/assigned").json()["results"]], [roads_id]
+        )
 
         # Roads staff cannot see or touch an Electricity complaint.
         track = f"/complaints/track/{electricity_id}"
         self.assertEqual(roads.get(track).status_code, 404)
-        self.assertEqual(roads.patch(f"/complaints/{elec_pk}/status", {"status": "In Progress"}).status_code, 404)
-        self.assertEqual(roads.post(f"/complaints/{elec_pk}/close", {"resolutionDetails": "x"}).status_code, 404)
+        self.assertEqual(
+            roads.patch(f"/complaints/{elec_pk}/status", {"status": "In Progress"}).status_code, 404
+        )
+        self.assertEqual(
+            roads.post(f"/complaints/{elec_pk}/close", {"resolutionDetails": "x"}).status_code, 404
+        )
         self.assertEqual(Complaint.objects.get(pk=elec_pk).status, "ASSIGNED")
         self.assertEqual(AuditLog.objects.count(), 0)
         self.assertEqual(Notification.objects.count(), 0)
