@@ -22,6 +22,7 @@ FIELDS = {
     "closedAt",
 }
 
+
 class TrackingTests(ComplaintAPITestCase):
     def setUp(self):
         super().setUp()

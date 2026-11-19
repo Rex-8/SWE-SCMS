@@ -28,6 +28,7 @@ class SprintOneScopeTests(IntegrationTestCase):
         "rating",
         "reassigned_by",
     }
+
     def test_excluded_endpoints_do_not_exist(self):
         admin = self.login(self.admin)
         for path in self.EXCLUDED_PATHS:

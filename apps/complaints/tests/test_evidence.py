@@ -1,4 +1,3 @@
-
 import tempfile
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -67,9 +66,7 @@ class EvidenceUploadTests(ComplaintAPITestCase):
         self.assertTrue(evidence.file.storage.exists(evidence.file.name))
 
     def test_invalid_extension_is_rejected(self):
-        response = self.upload(
-            SimpleUploadedFile("malware.exe", b"invalid")
-        )
+        response = self.upload(SimpleUploadedFile("malware.exe", b"invalid"))
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Complaint.objects.count(), 0)
@@ -88,9 +85,7 @@ class EvidenceUploadTests(ComplaintAPITestCase):
 
     def test_file_size_limit_is_enforced(self):
         with override_settings(SCMS_MAX_EVIDENCE_SIZE_BYTES=10):
-            response = self.upload(
-                SimpleUploadedFile("large.png", PNG_CONTENT)
-            )
+            response = self.upload(SimpleUploadedFile("large.png", PNG_CONTENT))
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Complaint.objects.count(), 0)
@@ -98,9 +93,7 @@ class EvidenceUploadTests(ComplaintAPITestCase):
     def test_owner_can_download_evidence(self):
         evidence = self.create_evidence()
 
-        tracking = self.client.get(
-            f"{TRACK_URL}/{evidence.complaint.tracking_id}"
-        ).json()
+        tracking = self.client.get(f"{TRACK_URL}/{evidence.complaint.tracking_id}").json()
 
         self.assertEqual(len(tracking["evidence"]), 1)
 
