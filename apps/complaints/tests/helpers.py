@@ -4,7 +4,13 @@ from rest_framework.test import APIClient
 
 from apps.accounts.models import Role
 from apps.accounts.tests.helpers import make_verified_user
-from apps.complaints.models import Category, Complaint, ComplaintStatus, Department
+from apps.complaints.models import (
+    Category,
+    Complaint,
+    ComplaintStatus,
+    ComplaintStatusHistory,
+    Department,
+)
 
 COMPLAINTS_URL = "/api/v1/complaints"
 TRACK_URL = "/api/v1/complaints/track"
@@ -53,4 +59,12 @@ class ComplaintAPITestCase(TestCase):
             location="Sector 12",
         )
         data.update(kw)
-        return Complaint.objects.create(**data)
+        complaint = Complaint.objects.create(**data)
+        ComplaintStatusHistory.objects.create(
+            complaint=complaint,
+            from_status=None,
+            to_status=complaint.status,
+            actor=complaint.citizen,
+            created_at=complaint.created_at,
+        )
+        return complaint

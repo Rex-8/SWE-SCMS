@@ -14,6 +14,7 @@ FIELDS = {
     "category",
     "description",
     "evidence",
+    "history",
     "location",
     "status",
     "department",
@@ -45,6 +46,18 @@ class TrackingTests(ComplaintAPITestCase):
         self.assertIsNotNone(body["updatedAt"])
         self.assertIsNone(body["closedAt"])
         self.assertEqual(body["evidence"], [])
+        self.assertEqual(
+            body["history"],
+            [
+                {
+                    "fromStatus": None,
+                    "toStatus": "Assigned",
+                    "remark": "",
+                    "actorName": "Citizen",
+                    "createdAt": body["createdAt"],
+                }
+            ],
+        )
 
     def test_closed_complaint_shows_closed_timestamp(self):
         closed = self.make_complaint(

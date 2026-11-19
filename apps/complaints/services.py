@@ -9,7 +9,7 @@ from apps.notifications.services import notify_status_change
 from apps.routing.services import RoutingError, resolve_department
 
 from . import workflow
-from .models import Category, Complaint, ComplaintStatus
+from .models import Category, Complaint, ComplaintStatus, ComplaintStatusHistory
 from .permissions import can_modify_complaint
 
 TRACKING_ALPHABET = string.ascii_uppercase + string.digits
@@ -57,14 +57,29 @@ def submit_complaint(*, citizen, category_id, description, location):
             validate_unique=False,
             validate_constraints=False,
         )
-        try:
-            with transaction.atomic():
-                complaint.save(force_insert=True)
-        except IntegrityError:
-            # Only a tracking-ID collision is retried; anything else is a real error.
-            if Complaint.objects.filter(tracking_id=complaint.tracking_id).exists():
-                continue
-            raise
+        collision = False
+        with transaction.atomic():
+            try:
+                # Isolate the insert in a savepoint so a duplicate ID does not poison
+                # the transaction that will also create the initial history row.
+                with transaction.atomic():
+                    complaint.save(force_insert=True)
+            except IntegrityError:
+                # Only a tracking-ID collision is retried; anything else is a real error.
+                collision = Complaint.objects.filter(tracking_id=complaint.tracking_id).exists()
+                if not collision:
+                    raise
+            if not collision:
+                ComplaintStatusHistory.objects.create(
+                    complaint=complaint,
+                    from_status=None,
+                    to_status=complaint.status,
+                    actor=citizen,
+                    remark="",
+                    created_at=complaint.created_at,
+                )
+        if collision:
+            continue
         return complaint
     raise TrackingIDGenerationError
 
@@ -107,6 +122,13 @@ def change_status(*, complaint_id, actor, new_status, remark=""):
             )
         complaint.status = new_status
         complaint.save(update_fields=["status", "updated_at"])
+        ComplaintStatusHistory.objects.create(
+            complaint=complaint,
+            from_status=old,
+            to_status=new_status,
+            actor=actor,
+            remark=remark,
+        )
         record_audit(
             actor=actor,
             action="complaint.status_changed",
@@ -132,6 +154,13 @@ def close_complaint(*, complaint_id, actor, resolution_details):
         complaint.resolution_details = details
         complaint.closed_at = timezone.now()
         complaint.save(update_fields=["status", "resolution_details", "closed_at", "updated_at"])
+        ComplaintStatusHistory.objects.create(
+            complaint=complaint,
+            from_status=old,
+            to_status=ComplaintStatus.CLOSED,
+            actor=actor,
+            remark=details,
+        )
         record_audit(
             actor=actor,
             action="complaint.closed",

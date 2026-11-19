@@ -40,6 +40,11 @@ class CitizenToResolutionTests(IntegrationTestCase):
         self.assertEqual(tracked["description"], "Streetlight out near the park")
         self.assertEqual(tracked["location"], "Sector 12")
         self.assertIsNone(tracked["closedAt"])
+        self.assertEqual(
+            [(entry["fromStatus"], entry["toStatus"]) for entry in tracked["history"]],
+            [(None, "Assigned")],
+        )
+        self.assertEqual(tracked["history"][0]["actorName"], "Asha")
 
         # 8. Staff of the department sees it.
         staff = self.login(self.elec_staff)
@@ -70,6 +75,15 @@ class CitizenToResolutionTests(IntegrationTestCase):
         final = citizen.get(track).json()
         self.assertEqual(final["status"], "Closed")
         self.assertIsNotNone(final["closedAt"])
+        self.assertEqual(
+            [entry["toStatus"] for entry in final["history"]],
+            ["Assigned", "In Progress", "Resolved", "Closed"],
+        )
+        self.assertEqual(
+            [entry["actorName"] for entry in final["history"]],
+            ["Asha", self.elec_staff.name, self.elec_staff.name, self.elec_staff.name],
+        )
+        self.assertEqual(final["history"][-1]["remark"], "Streetlight repaired and functionality verified.")
         complaint.refresh_from_db()
         self.assertEqual(complaint.resolution_details, "Streetlight repaired and functionality verified.")
 
