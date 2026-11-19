@@ -154,3 +154,9 @@ CACHES = {
         "LOCATION": env("CACHE_LOCATION", default="scms-default"),
     }
 }
+MEDIA_ROOT = BASE_DIR / "private_media"
+
+SCMS_MAX_EVIDENCE_SIZE_BYTES = env.int(
+    "SCMS_MAX_EVIDENCE_SIZE_BYTES",
+    default=5 * 1024 * 1024,
+)

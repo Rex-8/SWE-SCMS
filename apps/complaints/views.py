@@ -1,7 +1,10 @@
+from django.db import transaction
+from django.http import FileResponse
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -11,7 +14,13 @@ from apps.accounts.models import Role
 from apps.accounts.permissions import IsCitizen, IsStaffOrAdmin
 
 from . import services
-from .models import Category, Complaint
+from .evidence import (
+    InvalidEvidence,
+    attach_evidence,
+    validate_evidence_files,
+)
+from .models import Category, Complaint, ComplaintEvidence
+from .permissions import can_view_complaint
 from .serializers import (
     AssignedComplaintSerializer,
     CloseSerializer,
@@ -32,22 +41,43 @@ class ComplaintCreateView(APIView):
     permission_classes = [IsCitizen]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "complaint_submit"
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
 
     def post(self, request):
         serializer = ComplaintSubmitSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        files = request.FILES.getlist("files") + request.FILES.getlist("files[]")
+
         try:
-            complaint = services.submit_complaint(
-                citizen=request.user,
-                category_id=data["categoryId"],
-                description=data["description"],
-                location=data["location"],
+            validate_evidence_files(files)
+
+            with transaction.atomic():
+                complaint = services.submit_complaint(
+                    citizen=request.user,
+                    category_id=data["categoryId"],
+                    description=data["description"],
+                    location=data["location"],
+                )
+
+                attach_evidence(
+                    complaint=complaint,
+                    uploaded_by=request.user,
+                    files=files,
+                )
+
+        except InvalidEvidence as exc:
+            return Response(
+                {"files": [str(exc)]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
+
         except services.CategoryUnavailable:
             return Response(
-                {"categoryId": ["Select a valid, active category."]}, status=status.HTTP_400_BAD_REQUEST
+                {"categoryId": ["Select a valid, active category."]},
+                status=status.HTTP_400_BAD_REQUEST,
             )
+
         except services.TrackingIDGenerationError:
             return Response(
                 {"detail": "Could not create the complaint. Try again."},
@@ -125,3 +155,30 @@ class ComplaintCloseView(APIView):
         except services.InvalidTransition as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_409_CONFLICT)
         return Response({"status": complaint.get_status_display(), "closedAt": complaint.closed_at})
+
+
+class EvidenceDownloadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        evidence = ComplaintEvidence.objects.select_related("complaint__department").filter(pk=pk).first()
+
+        if evidence is None or not can_view_complaint(request.user, evidence.complaint):
+            raise NotFound("Evidence not found.")
+
+        try:
+            file = evidence.file.open("rb")
+        except OSError:
+            raise NotFound("Evidence not found.") from None
+
+        response = FileResponse(
+            file,
+            as_attachment=True,
+            filename=evidence.original_name,
+            content_type=evidence.content_type,
+        )
+
+        response["X-Content-Type-Options"] = "nosniff"
+        response["Cache-Control"] = "private, no-store"
+
+        return response

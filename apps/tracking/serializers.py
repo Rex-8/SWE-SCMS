@@ -1,10 +1,27 @@
+from django.urls import reverse
 from rest_framework import serializers
+
+
+class EvidenceSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    fileName = serializers.CharField(
+        source="original_name",
+        read_only=True,
+    )
+    downloadUrl = serializers.SerializerMethodField()
+
+    def get_downloadUrl(self, obj):
+        return reverse(
+            "complaints:evidence-download",
+            kwargs={"pk": obj.pk},
+        )
 
 
 class ComplaintTrackingSerializer(serializers.Serializer):
     trackingId = serializers.CharField(source="tracking_id", read_only=True)
     category = serializers.CharField(source="category.name", read_only=True)
     description = serializers.CharField(read_only=True)
+    evidence = EvidenceSerializer(many=True, read_only=True)
     location = serializers.CharField(read_only=True)
     status = serializers.CharField(source="get_status_display", read_only=True)
     department = serializers.CharField(source="department.name", read_only=True)

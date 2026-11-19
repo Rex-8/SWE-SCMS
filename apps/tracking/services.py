@@ -12,7 +12,10 @@ def get_trackable_complaint(*, user, tracking_id):
     if not TRACKING_ID_RE.match(tracking_id):
         return None
     complaint = (
-        Complaint.objects.select_related("category", "department").filter(tracking_id=tracking_id).first()
+        Complaint.objects.select_related("category", "department")
+        .prefetch_related("evidence")
+        .filter(tracking_id=tracking_id)
+        .first()
     )
     if complaint is None or not can_view_complaint(user, complaint):
         return None
