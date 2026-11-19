@@ -31,6 +31,7 @@ Linux/macOS: `source .venv/bin/activate` instead of the activate script; the res
 | `DATABASE_URL` | e.g. `postgres://user:pass@host:5432/db` (also `pip install -r requirements-postgres.txt`) | SQLite file |
 | `OTP_GATEWAY` | dotted path of the OTP delivery class | console (DEBUG only) |
 | `NOTIFICATION_ADAPTER` | dotted path of the notification adapter | console (DEBUG only) |
+| `EMAIL_HOST`, `SMS_PROVIDER`, `CACHE_BACKEND`, ... | real delivery and shared cache (see Production notes and `.env.example`) | unset / local |
 
 ## Users and roles
 | Role | Can |
@@ -82,7 +83,17 @@ GitHub Actions runs lint, tests on Python 3.12 and 3.14 (SQLite) and on PostgreS
 `config/` settings and URLs · `apps/accounts` identity, OTP, auth · `apps/complaints` models, workflow, status/close · `apps/routing` category→department · `apps/tracking` tracking lookup · `apps/notifications` outbox + adapters · `apps/audit` append-only log · `tests/integration` · `docs/`
 
 ## Production notes
-Serve over HTTPS with `DJANGO_DEBUG=False`; use PostgreSQL; configure a **shared cache** (throttle counters are per-process by default); provide real OTP and notification adapters (the console ones refuse to run when `DEBUG=False`); run `send_pending_notifications` on a schedule. See `docs/RELEASE_NOTES.md` for known limitations.
+Serve over HTTPS with `DJANGO_DEBUG=False`; use PostgreSQL. The console OTP/notification adapters refuse to run when `DEBUG=False`, so set:
+
+- `OTP_GATEWAY=apps.accounts.gateways.DeliveryOTPGateway` and `NOTIFICATION_ADAPTER=apps.notifications.adapters.DeliveryNotificationAdapter`
+- **Email:** `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, `DEFAULT_FROM_EMAIL` (any SMTP server).
+- **SMS (mobile OTP/notifications):** set `SMS_PROVIDER` (dotted path of an `SMSProvider` subclass), plus `SMS_API_URL`, `SMS_API_KEY`, `SMS_SENDER_ID` for the bundled `HTTPSMSProvider`. **No SMS provider has been selected yet; until one is, mobile delivery is unavailable and this is a deployment blocker.**
+- **Shared cache (throttling):** `CACHE_BACKEND=django.core.cache.backends.db.DatabaseCache`, `CACHE_LOCATION=scms_cache`, then run `python manage.py createcachetable` once. The default per-process cache is for local development only.
+- **Retries:** schedule `python manage.py send_pending_notifications` every minute, e.g. cron:
+  `* * * * * cd /srv/scms && /srv/scms/.venv/bin/python manage.py send_pending_notifications >> /var/log/scms-notify.log 2>&1`
+  It is safe to run repeatedly and stops retrying a notification after `NOTIFICATION_MAX_ATTEMPTS`.
+
+See `docs/RELEASE_NOTES.md` for known limitations.
 
 ## Branching
 `main` ← `develop` ← `rehaan-dev` / `meghana-dev`. Feature PRs target `develop` and need the other developer's review.

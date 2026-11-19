@@ -121,10 +121,36 @@ AUTHENTICATION_BACKENDS = ["apps.accounts.backends.ContactBackend"]
 OTP_LENGTH = 6
 OTP_TTL_SECONDS = 10 * 60
 OTP_MAX_ATTEMPTS = 5
-# Dev-only mock gateway (prints to stdout, refuses to run when DEBUG=False).
-# A real provider adapter comes with the notifications PR.
+# Dev-only mock gateway by default (refuses to run when DEBUG=False). For deployment set
+# OTP_GATEWAY=apps.accounts.gateways.DeliveryOTPGateway.
 OTP_GATEWAY = env("OTP_GATEWAY", default="apps.accounts.gateways.ConsoleOTPGateway")
 NOTIFICATION_ADAPTER = env(
     "NOTIFICATION_ADAPTER", default="apps.notifications.adapters.ConsoleNotificationAdapter"
 )
 NOTIFICATION_MAX_ATTEMPTS = 3
+
+# Real delivery (used by DeliveryOTPGateway / DeliveryNotificationAdapter). Secrets come from env only.
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = env("EMAIL_HOST", default="")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_TIMEOUT = 10
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="SCMS <no-reply@localhost>")
+
+# SMS provider is an open team decision: empty means mobile delivery is unavailable.
+# SMS_PROVIDER is a dotted path, e.g. apps.notifications.delivery.HTTPSMSProvider
+SMS_PROVIDER = env("SMS_PROVIDER", default="")
+SMS_API_URL = env("SMS_API_URL", default="")
+SMS_API_KEY = env("SMS_API_KEY", default="")
+SMS_SENDER_ID = env("SMS_SENDER_ID", default="SCMS")
+
+# Throttle counters live in the cache. Local default is per-process; production must use a shared
+# backend (e.g. django.core.cache.backends.db.DatabaseCache + `manage.py createcachetable`).
+CACHES = {
+    "default": {
+        "BACKEND": env("CACHE_BACKEND", default="django.core.cache.backends.locmem.LocMemCache"),
+        "LOCATION": env("CACHE_LOCATION", default="scms-default"),
+    }
+}

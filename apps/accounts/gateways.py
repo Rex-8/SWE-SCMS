@@ -3,6 +3,8 @@ import sys
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
+from apps.notifications.delivery import deliver
+
 
 class OTPGateway:
     def send(self, *, channel, recipient, code):
@@ -25,3 +27,16 @@ class LocMemOTPGateway(OTPGateway):
 
     def send(self, *, channel, recipient, code):
         self.outbox.append({"channel": channel, "recipient": recipient, "code": code})
+
+
+class DeliveryOTPGateway(OTPGateway):
+    """Real gateway: email via Django's configured email backend, mobile via SMS_PROVIDER."""
+
+    def send(self, *, channel, recipient, code):
+        minutes = settings.OTP_TTL_SECONDS // 60
+        deliver(
+            channel=channel,
+            address=recipient,
+            subject="Your SCMS verification code",
+            body=f"Your SCMS verification code is {code}. It expires in {minutes} minutes.",
+        )

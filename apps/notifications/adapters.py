@@ -3,6 +3,8 @@ import sys
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
+from .delivery import deliver
+
 
 class NotificationAdapter:
     """Delivery backend. Implementations must raise on failure and must not log secrets."""
@@ -29,3 +31,10 @@ class LocMemNotificationAdapter(NotificationAdapter):
 
     def send(self, *, channel, address, message):
         self.outbox.append({"channel": channel, "address": address, "message": message})
+
+
+class DeliveryNotificationAdapter(NotificationAdapter):
+    """Real adapter: email via Django's configured email backend, mobile via SMS_PROVIDER."""
+
+    def send(self, *, channel, address, message):
+        deliver(channel=channel, address=address, subject="SCMS complaint update", body=message)
