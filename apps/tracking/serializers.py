@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from apps.complaints.models import ComplaintStatus
 
 
 class ComplaintTrackingSerializer(serializers.Serializer):
@@ -11,3 +12,16 @@ class ComplaintTrackingSerializer(serializers.Serializer):
     createdAt = serializers.DateTimeField(source="created_at", read_only=True)
     updatedAt = serializers.DateTimeField(source="updated_at", read_only=True)
     closedAt = serializers.DateTimeField(source="closed_at", read_only=True, allow_null=True)
+    resolutionDetails = serializers.CharField(source="resolution_details", read_only=True)
+    history = serializers.SerializerMethodField()
+    attachments = serializers.SerializerMethodField()
+
+    def get_history(self, obj):
+        return [{"from": h.from_status, "to": ComplaintStatus(h.to_status).label,
+                 "remark": h.remark, "actor": h.actor.name, "at": h.created_at}
+                for h in obj.history.select_related("actor").all()]
+
+    def get_attachments(self, obj):
+        request = self.context.get("request")
+        return [{"name": a.original_name, "url": request.build_absolute_uri(f"/api/v1/attachments/{a.pk}") if request else f"/api/v1/attachments/{a.pk}"}
+                for a in obj.evidence_files.all()]

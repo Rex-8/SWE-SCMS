@@ -1,10 +1,10 @@
-# SCMS: Smart Complaint Management System (Sprint 1)
+# SCMS: Smart Complaint Management System
 
 ![CI](https://github.com/Rex-8/SWE-SCMS/actions/workflows/ci.yml/badge.svg)
 
-Citizens lodge complaints about public services, get a tracking ID and follow resolution. Department staff process complaints assigned to their department; admins oversee the system. Sprint 1 covers requirements F-001..F-004, F-006, F-007, F-010, F-012..F-014 (see `docs/TRACEABILITY.md`).
+Citizens lodge complaints about public services, attach evidence, track status history and give feedback after closure. Department staff process assigned complaints; admins manage users, categories, SLA targets, assignments, reports and audit activity. The application covers functional requirements SCMS-F-001 through SCMS-F-015.
 
-**Stack:** Python 3.11+, Django 5.2, Django REST Framework, SQLite (dev) / PostgreSQL 15, session authentication, Argon2 password hashing. Layered modular monolith; business rules live in `services.py` modules. Sprint 1 is API-first: there are no HTML pages yet, only the JSON API and the Django admin site.
+**Stack:** Python 3.11+, Django 5.2, Django REST Framework, SQLite (dev) / PostgreSQL 15, session authentication, Argon2 password hashing. Layered modular monolith; business rules live in `services.py` modules. The application includes a responsive role-based web interface, JSON API and Django admin site.
 
 ## Setup
 
@@ -43,6 +43,9 @@ Public registration only creates citizens. Staff and admins are provisioned by a
 - Admin: `python manage.py createsuperuser`.
 - Staff: in `/admin/` create a user with role **Staff** and tick **Is verified** (unverified users cannot log in), then add them to a department under **Departments → Staff**.
 
+## Web application
+Open `http://127.0.0.1:8000/` for the responsive citizen, staff and admin interface. Staff/admin use the same login form; their role controls the dashboard. The Admin **Administration** link opens Django admin for user, department, category and SLA target management.
+
 ## API (`/api/v1/`, session cookie + CSRF)
 Call `GET auth/csrf` first and send the `csrftoken` cookie value as the `X-CSRFToken` header on every POST/PATCH. In development the OTP is printed to the `runserver` console.
 
@@ -60,6 +63,14 @@ Call `GET auth/csrf` first and send the `csrftoken` cookie value as the `X-CSRFT
 | GET | `complaints/assigned` | staff / admin | `?page=`, `?pageSize=` |
 | PATCH | `complaints/{id}/status` | staff (own dept) / admin | `status`, `remark` |
 | POST | `complaints/{id}/close` | staff (own dept) / admin | `resolutionDetails` |
+| GET | `complaints/search` | authenticated | `id`, `category`, `status`, `from`, `to` filters |
+| GET | `complaints/{id}` | owner / department staff / admin | complaint, history, evidence |
+| POST | `complaints/{id}/attachments` | citizen (owner) | multipart `files[]` |
+| POST | `complaints/{id}/reassign` | admin | `departmentId`, optional `staffId` |
+| POST | `complaints/{id}/feedback` | citizen (owner, closed complaint) | `rating`, `comment` |
+| GET | `reports/complaints` | admin | optional date filters |
+| GET | `audit-logs` | admin | latest audit activity |
+| GET | `notifications` | authenticated (own notifications) | |
 
 Workflow: `Assigned → In Progress → Resolved → Closed` (`Resolved` may return to `In Progress`; `Closed` is terminal and reachable only through `close`). Unknown, malformed and not-yours complaint IDs all return the same 404. Complaints are created in status *Assigned*, with the department taken from the category.
 

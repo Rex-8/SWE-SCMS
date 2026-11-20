@@ -20,3 +20,17 @@ Security: Argon2 hashing, server-side RBAC with object-level checks, CSRF everyw
 
 ## Excluded (Sprint 2)
 F-005 evidence uploads, F-008 status history, F-009 search/filtering, F-011 admin reassignment, F-015 reports and feedback. `tests/integration/test_scope.py` guards against them appearing early.
+
+
+## Full application feature completion
+
+The role-based web application and Sprint 2 functional features have now been added while retaining the original Django/DRF services and existing tests. Added functionality:
+
+- F-005: image/PDF evidence upload (JPG, PNG, PDF; maximum 5 MB per file; up to five files per submission) with authenticated downloads and complaint-level access checks.
+- F-008: append-only chronological status history with actor, timestamp and remark, including the initial assignment.
+- F-009: role-scoped search by tracking ID, category, status and date.
+- F-011: admin reassignment to an active department and optional department member, with audit entry.
+- F-015: admin complaint summaries/SLA breach reporting and one-time citizen rating/comment after closure.
+- Responsive citizen, staff and admin dashboards; notifications; admin management of users, departments, categories and SLA hours through Django admin.
+
+Category SLA target defaults to 72 hours and is editable by an admin. The project still requires a configured real OTP/notification provider for production. Automated Django tests could not be executed in the packaging environment because Django dependencies were not installed and package-network access was unavailable.

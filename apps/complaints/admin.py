@@ -14,9 +14,10 @@ class DepartmentAdmin(AuditedAdminMixin, admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(AuditedAdminMixin, admin.ModelAdmin):
-    list_display = ("name", "department", "is_active")
+    list_display = ("name", "department", "sla_hours", "is_active")
     list_filter = ("department", "is_active")
     search_fields = ("name",)
+    list_editable = ("sla_hours", "is_active")
 
 
 @admin.register(Complaint)

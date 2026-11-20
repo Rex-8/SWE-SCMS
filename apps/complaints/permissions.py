@@ -11,7 +11,7 @@ def can_view_complaint(user, complaint):
     if user.role == Role.CITIZEN:
         return is_owner(user, complaint)
     if user.role == Role.STAFF:
-        return complaint.department.staff.filter(pk=user.pk).exists()
+        return complaint.department.staff.filter(pk=user.pk).exists() and (complaint.assigned_staff_id is None or complaint.assigned_staff_id == user.pk)
     return False
 
 
@@ -22,5 +22,5 @@ def can_modify_complaint(user, complaint):
     if user.role == Role.ADMIN:
         return True
     if user.role == Role.STAFF:
-        return complaint.department.staff.filter(pk=user.pk).exists()
+        return complaint.department.staff.filter(pk=user.pk).exists() and (complaint.assigned_staff_id is None or complaint.assigned_staff_id == user.pk)
     return False

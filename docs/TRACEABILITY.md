@@ -23,3 +23,10 @@ The TC-Sec-01..05 to SR-001..005 mapping is assumed; adjust to the STP numbering
 
 Not validated by these tests (need a deployed environment): NF-001 response time, NF-002 availability, NF-003 load, NF-004 accessibility, NF-005 five-year retention.
 Sprint 2 exclusions (F-005, F-008, F-009, F-011, F-015) are guarded by `tests/integration/test_scope.py`.
+
+
+## Sprint 2 application completion
+
+The application now includes the remaining functional requirements: F-005 protected image/PDF evidence uploads; F-008 chronological status history; F-009 role-scoped complaint search and filters; F-011 admin reassignment with audit recording; and F-015 admin reporting plus one-time citizen feedback after closure. The `templates/scms.html` and `static/scms.*` files provide the responsive role-based web interface. Category SLA targets are editable in Django admin.
+
+The legacy `tests/integration/test_scope.py` intentionally asserts that Sprint 2 functionality is absent. It is preserved unchanged as requested, but its scope assertions are no longer applicable to the completed feature set.

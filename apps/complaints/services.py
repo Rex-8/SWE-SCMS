@@ -9,7 +9,7 @@ from apps.notifications.services import notify_status_change
 from apps.routing.services import RoutingError, resolve_department
 
 from . import workflow
-from .models import Category, Complaint, ComplaintStatus
+from .models import Category, Complaint, ComplaintStatus, StatusHistory
 from .permissions import can_modify_complaint
 
 TRACKING_ALPHABET = string.ascii_uppercase + string.digits
@@ -60,6 +60,10 @@ def submit_complaint(*, citizen, category_id, description, location):
         try:
             with transaction.atomic():
                 complaint.save(force_insert=True)
+                StatusHistory.objects.create(
+                    complaint=complaint, from_status="", to_status=complaint.status,
+                    actor=citizen, remark="Complaint submitted"
+                )
         except IntegrityError:
             # Only a tracking-ID collision is retried; anything else is a real error.
             if Complaint.objects.filter(tracking_id=complaint.tracking_id).exists():
@@ -107,6 +111,7 @@ def change_status(*, complaint_id, actor, new_status, remark=""):
             )
         complaint.status = new_status
         complaint.save(update_fields=["status", "updated_at"])
+        StatusHistory.objects.create(complaint=complaint, from_status=old, to_status=new_status, actor=actor, remark=remark)
         record_audit(
             actor=actor,
             action="complaint.status_changed",
@@ -132,6 +137,7 @@ def close_complaint(*, complaint_id, actor, resolution_details):
         complaint.resolution_details = details
         complaint.closed_at = timezone.now()
         complaint.save(update_fields=["status", "resolution_details", "closed_at", "updated_at"])
+        StatusHistory.objects.create(complaint=complaint, from_status=old, to_status=ComplaintStatus.CLOSED.value, actor=actor, remark=details)
         record_audit(
             actor=actor,
             action="complaint.closed",

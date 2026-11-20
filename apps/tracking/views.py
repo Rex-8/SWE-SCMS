@@ -17,4 +17,4 @@ class TrackComplaintView(APIView):
         complaint = services.get_trackable_complaint(user=request.user, tracking_id=tracking_id)
         if complaint is None:
             raise NotFound("Complaint not found.")  # same response for unknown and forbidden
-        return Response(ComplaintTrackingSerializer(complaint).data)
+        return Response(ComplaintTrackingSerializer(complaint, context={"request": request}).data)

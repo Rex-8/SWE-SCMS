@@ -1,7 +1,9 @@
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -11,7 +13,8 @@ from apps.accounts.models import Role
 from apps.accounts.permissions import IsCitizen, IsStaffOrAdmin
 
 from . import services
-from .models import Category, Complaint
+from .models import Category, Complaint, ComplaintAttachment
+from .uploads import validate_evidence
 from .serializers import (
     AssignedComplaintSerializer,
     CloseSerializer,
@@ -29,6 +32,7 @@ class CategoryListView(APIView):
 
 
 class ComplaintCreateView(APIView):
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     permission_classes = [IsCitizen]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "complaint_submit"
@@ -37,6 +41,9 @@ class ComplaintCreateView(APIView):
         serializer = ComplaintSubmitSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        uploads = request.FILES.getlist("files")
+        if len(uploads) > 5 or any(not validate_evidence(f) for f in uploads):
+            return Response({"detail": "Upload up to 5 JPG, PNG or PDF files, each no larger than 5 MB, with valid file contents."}, status=400)
         try:
             complaint = services.submit_complaint(
                 citizen=request.user,
@@ -53,6 +60,9 @@ class ComplaintCreateView(APIView):
                 {"detail": "Could not create the complaint. Try again."},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
+        for f in uploads:
+            ComplaintAttachment.objects.create(complaint=complaint, file=f, original_name=f.name.rsplit("/", 1)[-1].rsplit("\\", 1)[-1],
+                                               content_type=f.content_type or "application/octet-stream", size=f.size)
         return Response(
             {
                 "trackingId": complaint.tracking_id,
@@ -79,7 +89,9 @@ class AssignedComplaintListView(ListAPIView):
     def get_queryset(self):
         queryset = Complaint.objects.select_related("category", "department")
         if self.request.user.role == Role.STAFF:
-            queryset = queryset.filter(department__staff=self.request.user)
+            queryset = queryset.filter(department__staff=self.request.user).filter(
+                Q(assigned_staff__isnull=True) | Q(assigned_staff=self.request.user)
+            )
         return queryset.order_by("-created_at", "-id")
 
 

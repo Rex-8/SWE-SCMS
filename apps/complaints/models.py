@@ -45,6 +45,8 @@ class Category(models.Model):
     description = models.TextField(blank=True)
     department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name="categories")
     is_active = models.BooleanField(default=True)
+    sla_hours = models.PositiveIntegerField(default=72, help_text="Target resolution time in hours.")
+
 
     class Meta:
         verbose_name_plural = "categories"
@@ -123,3 +125,36 @@ class Complaint(models.Model):
             errors["resolution_details"] = "Resolution details are required to close a complaint."
         if errors:
             raise ValidationError(errors)
+class ComplaintAttachment(models.Model):
+    complaint = models.ForeignKey(Complaint, on_delete=models.PROTECT, related_name="evidence_files")
+    file = models.FileField(upload_to="complaints/%Y/%m/")
+    original_name = models.CharField(max_length=255)
+    content_type = models.CharField(max_length=100)
+    size = models.PositiveIntegerField()
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["uploaded_at"]
+
+
+class StatusHistory(models.Model):
+    complaint = models.ForeignKey(Complaint, on_delete=models.PROTECT, related_name="history")
+    from_status = models.CharField(max_length=12, blank=True)
+    to_status = models.CharField(max_length=12)
+    remark = models.TextField(blank=True)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="status_changes")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+
+
+class CitizenFeedback(models.Model):
+    complaint = models.OneToOneField(Complaint, on_delete=models.PROTECT, related_name="citizen_review")
+    citizen = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="citizen_review")
+    rating = models.PositiveSmallIntegerField()
+    comment = models.TextField(blank=True, max_length=2000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=Q(rating__gte=1, rating__lte=5), name="feedback_rating_1_to_5")]
